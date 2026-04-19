@@ -1,7 +1,7 @@
 {
   "name": "toozi-mef-proxy",
-  "version": "1.0.0",
-  "description": "Minimal pass-through proxy for IRS MeF SOAP submissions.",
+  "version": "1.1.0",
+  "description": "Pass-through proxy + IRS MeF SOAP envelope builder/signer for Toozi.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,7 +10,9 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.10",
     "express": "^4.19.2",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "xml-crypto": "^6.0.0"
   }
 }
