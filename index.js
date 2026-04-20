@@ -59,20 +59,32 @@ app.post('/mef/login', async (req, res) => {
   }
 });
 
-// SendSubmissions — expects { submissions: [{ submissionId, electronicPostmarkTs }] }.
-// Performs a Login first if no cached SAML is available.
+// SendSubmissions — expects { submissionId, electronicPostmarkTs, zipBase64 }.
+// The ZIP is transmitted as a base64-encoded string in JSON; the proxy decodes
+// it to a Buffer and wraps it as MIME Part 2. If no SAML is cached, logs in
+// first so the SendSubmissions envelope can carry a valid assertion.
 app.post('/mef/send-submissions', async (req, res) => {
   if (!requireProxyKey(req, res)) return;
   try {
-    const { submissions } = req.body || {};
-    if (!Array.isArray(submissions) || submissions.length === 0) {
-      return res.status(400).json({ success: false, error: 'submissions array required' });
+    const { submissionId, electronicPostmarkTs, zipBase64 } = req.body || {};
+    if (!submissionId || !electronicPostmarkTs || !zipBase64) {
+      return res.status(400).json({
+        success: false,
+        error: 'submissionId, electronicPostmarkTs, and zipBase64 are required',
+      });
     }
-    const result = await sendSubmissions({ submissions });
+    const zipBuffer = Buffer.from(zipBase64, 'base64');
+    if (zipBuffer.length === 0) {
+      return res.status(400).json({ success: false, error: 'zipBase64 decoded to empty buffer' });
+    }
+    const result = await sendSubmissions({ submissionId, electronicPostmarkTs, zipBuffer });
     res.status(result.success ? 200 : 502).json({
       success: result.success,
       messageId: result.messageId,
+      submissionId: result.submissionId,
       request: result.request,
+      mimeBoundary: result.mimeBoundary,
+      mimeTotalBytes: result.mimeTotalBytes,
       responseStatus: result.response.status,
       responseHeaders: result.response.headers,
       responseBody: result.response.body,
