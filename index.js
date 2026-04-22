@@ -103,18 +103,19 @@ app.post('/mef/send-submissions', async (req, res) => {
 app.post('/mef/get-acks', async (req, res) => {
   if (!requireProxyKey(req, res)) return;
   try {
-    const { submissionIds } = req.body || {};
+    const { submissionIds, schemaVariant } = req.body || {};
     if (!Array.isArray(submissionIds) || submissionIds.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'submissionIds (non-empty array) is required',
       });
     }
-    const result = await getAcknowledgements({ submissionIds });
+    const result = await getAcknowledgements({ submissionIds, schemaVariant });
     res.status(result.success ? 200 : 502).json({
       success: result.success,
       messageId: result.messageId,
       submissionIds: result.submissionIds,
+      schemaVariant: result.schemaVariant,
       request: result.request,
       responseStatus: result.response.status,
       responseHeaders: result.response.headers,
