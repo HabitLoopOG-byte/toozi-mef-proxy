@@ -1,6 +1,6 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const { loginMeF, sendSubmissions } = require('./lib/mefClient');
+const { loginMeF, sendSubmissions, getAcknowledgements } = require('./lib/mefClient');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -96,7 +96,38 @@ app.post('/mef/send-submissions', async (req, res) => {
   }
 });
 
-app.get('/health', (_req, res) => res.json({ ok: true, version: '1.1.0' }));
+// GetAcknowledgements — given { submissionIds: [...] }, poll IRS for the
+// actual accept/reject verdict of each submission. Returns the raw SOAP
+// response body so the caller can parse it however they want (the Supabase
+// `get-mef-acks` edge function parses StatusCd + ErrorList per submission).
+app.post('/mef/get-acks', async (req, res) => {
+  if (!requireProxyKey(req, res)) return;
+  try {
+    const { submissionIds } = req.body || {};
+    if (!Array.isArray(submissionIds) || submissionIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'submissionIds (non-empty array) is required',
+      });
+    }
+    const result = await getAcknowledgements({ submissionIds });
+    res.status(result.success ? 200 : 502).json({
+      success: result.success,
+      messageId: result.messageId,
+      submissionIds: result.submissionIds,
+      request: result.request,
+      responseStatus: result.response.status,
+      responseHeaders: result.response.headers,
+      responseBody: result.response.body,
+      durationMs: result.response.durationMs,
+    });
+  } catch (err) {
+    console.error('[mef-proxy] /mef/get-acks error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/health', (_req, res) => res.json({ ok: true, version: '1.2.0' }));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`mef-proxy listening on :${PORT}`));
