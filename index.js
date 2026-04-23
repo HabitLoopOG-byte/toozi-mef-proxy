@@ -139,7 +139,17 @@ app.post('/mef/get-acks', async (req, res) => {
   }
 });
 
-app.get('/health', (_req, res) => res.json({ ok: true, version: '1.2.0' }));
+app.get('/health', (_req, res) => res.json({
+  ok: true,
+  version: '1.3.0',
+  // Exposed so deploys can be positively identified from a curl — if Railway
+  // is still serving a stale build the variants list will be wrong and we'll
+  // see 'mime' missing here.
+  getAcksEndpointVariants: [
+    'mime', 'direct', 'msi_services', 'msi_lowercase',
+    'msi_services_root', 'get_acks', 'transmitter',
+  ],
+}));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`mef-proxy listening on :${PORT}`));
