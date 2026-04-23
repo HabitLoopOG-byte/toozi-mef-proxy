@@ -125,6 +125,7 @@ app.post('/mef/get-acks', async (req, res) => {
       schemaVariant: result.schemaVariant,
       endpointVariant: result.endpointVariant,
       endpointUrl: result.endpointUrl,
+      operationName: result.operationName,
       soapActionVariant: result.soapActionVariant,
       soapAction: result.soapAction,
       transport: result.transport, // was missing — edge function saw transport:null even when MIME was used
@@ -142,13 +143,17 @@ app.post('/mef/get-acks', async (req, res) => {
 
 app.get('/health', (_req, res) => res.json({
   ok: true,
-  version: '1.3.1',
-  // Exposed so deploys can be positively identified from a curl.
+  version: '2.0.0',
+  // Real IRS operation is GetAcks, not GetAcknowledgements. Confirmed via
+  // prd_endpoints.properties. Default is now `get_acks_mime` which
+  // resolves to /a2a/mef/mime/GetAcks with SOAPAction=GetAcks.
   getAcksEndpointVariants: [
+    'get_acks_mime', 'get_ack_mime', 'get_new_acks_mime',
     'mime', 'direct', 'msi_services', 'msi_lowercase',
     'msi_services_root', 'get_acks', 'transmitter',
     'mime_root', 'login_path', 'mefservices',
   ],
+  getAcksDefaultVariant: 'get_acks_mime',
 }));
 
 const PORT = process.env.PORT || 3000;
