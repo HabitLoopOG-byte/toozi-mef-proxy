@@ -133,6 +133,10 @@ app.post('/mef/get-acks', async (req, res) => {
       responseStatus: result.response.status,
       responseHeaders: result.response.headers,
       responseBody: result.response.body,
+      // Binary-safe — only populated for /mime endpoints via postSoapAsMime.
+      // Edge function decodes, splits MIME parts, and ZIP-extracts Part 2.
+      responseBodyBase64: result.response.bodyBase64 ?? null,
+      responseBodyBytes: result.response.bodyBytes ?? null,
       durationMs: result.response.durationMs,
     });
   } catch (err) {
