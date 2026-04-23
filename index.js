@@ -142,13 +142,12 @@ app.post('/mef/get-acks', async (req, res) => {
 
 app.get('/health', (_req, res) => res.json({
   ok: true,
-  version: '1.3.0',
-  // Exposed so deploys can be positively identified from a curl — if Railway
-  // is still serving a stale build the variants list will be wrong and we'll
-  // see 'mime' missing here.
+  version: '1.3.1',
+  // Exposed so deploys can be positively identified from a curl.
   getAcksEndpointVariants: [
     'mime', 'direct', 'msi_services', 'msi_lowercase',
     'msi_services_root', 'get_acks', 'transmitter',
+    'mime_root', 'login_path', 'mefservices',
   ],
 }));
 
