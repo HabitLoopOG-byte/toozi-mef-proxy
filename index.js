@@ -103,7 +103,7 @@ app.post('/mef/send-submissions', async (req, res) => {
 app.post('/mef/get-acks', async (req, res) => {
   if (!requireProxyKey(req, res)) return;
   try {
-    const { submissionIds, schemaVariant, endpointVariant, soapActionVariant } = req.body || {};
+    const { submissionIds, schemaVariant, endpointVariant, soapActionVariant, envelopeMode } = req.body || {};
     if (!Array.isArray(submissionIds) || submissionIds.length === 0) {
       return res.status(400).json({
         success: false,
@@ -115,11 +115,13 @@ app.post('/mef/get-acks', async (req, res) => {
       schemaVariant,
       endpointVariant,
       soapActionVariant,
+      envelopeMode,
     });
     res.status(result.success ? 200 : 502).json({
       success: result.success,
       messageId: result.messageId,
       submissionIds: result.submissionIds,
+      envelopeMode: result.envelopeMode,
       schemaVariant: result.schemaVariant,
       endpointVariant: result.endpointVariant,
       endpointUrl: result.endpointUrl,
