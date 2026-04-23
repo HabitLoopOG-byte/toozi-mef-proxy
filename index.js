@@ -127,6 +127,7 @@ app.post('/mef/get-acks', async (req, res) => {
       endpointUrl: result.endpointUrl,
       soapActionVariant: result.soapActionVariant,
       soapAction: result.soapAction,
+      transport: result.transport, // was missing — edge function saw transport:null even when MIME was used
       request: result.request,
       responseStatus: result.response.status,
       responseHeaders: result.response.headers,
